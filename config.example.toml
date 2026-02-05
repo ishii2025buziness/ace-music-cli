@@ -1,0 +1,42 @@
+# ace-music-cli configuration
+# Copy to config.toml and edit as needed.
+
+[backend]
+type = "vastai"  # "vastai" | "runpod" | "local"
+
+[backend.vastai]
+instance_id = "30971522"
+ssh_host = "ssh8.vast.ai"
+ssh_port = 11522
+ssh_user = "root"
+comfyui_port = 8188
+
+[backend.local]
+comfyui_url = "http://localhost:8188"
+
+[backend.runpod]
+pod_id = ""
+api_key = ""
+comfyui_port = 8188
+
+[agent]
+type = "anthropic"  # "anthropic" | "openai" | "local"
+
+[agent.anthropic]
+model = "claude-sonnet-4-20250514"
+# api_key = ""  # or set ANTHROPIC_API_KEY env var
+
+[agent.openai]
+model = "gpt-4o"
+# api_key = ""
+
+[agent.local]
+model = "llama3"
+endpoint = "http://localhost:11434"
+
+[output]
+directory = "./output"
+format = "flac"
+
+[player]
+command = "auto"  # "auto" | "ffplay" | "mpv" | "aplay"

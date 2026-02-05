@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ace-music-cli"
+version = "0.1.0"
+description = "Interactive CLI for ACE-Step music generation with pluggable backends and AI agents"
+requires-python = ">=3.10"
+dependencies = [
+    "typer>=0.15",
+    "rich>=14",
+    "prompt-toolkit>=3.0",
+    "pydantic>=2.0",
+    "httpx>=0.28",
+    "tomli>=2.0; python_version<'3.11'",
+    "anthropic>=0.52",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.0"]
+local = ["ollama>=0.4"]
+
+[project.scripts]
+ace-music = "ace_music.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ace_music"]
