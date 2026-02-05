@@ -1,32 +1,32 @@
 # ace-music-cli
 
-Interactive CLI for [ACE-Step](https://github.com/ace-step/ACE-Step) music generation with pluggable backends and AI-assisted prompt creation.
+[ACE-Step](https://github.com/ace-step/ACE-Step) を使った対話型音楽生成CLIツール。バックエンドとAIエージェントを差し替え可能な設計。
 
-## Features
+## 特徴
 
-- **Interactive session** — describe what you want in natural language, AI generates style tags and lyrics
-- **Push notification** — terminal bell + playback prompt when generation completes
-- **Pluggable backends** — vast.ai, local ComfyUI, RunPod (planned)
-- **Pluggable AI agents** — Anthropic Claude, OpenAI (planned), local LLM (planned)
-- **Auto audio playback** — detects ffplay, mpv, or aplay
+- **対話型セッション** — 自然言語で説明するだけで、AIがスタイルタグと歌詞を生成
+- **生成完了通知** — 生成が終わるとターミナルベルで通知し、再生するかをプロンプト
+- **バックエンド差し替え** — vast.ai / ローカルComfyUI / RunPod（予定）
+- **AIエージェント差し替え** — Anthropic Claude / OpenAI（予定）/ ローカルLLM（予定）
+- **自動音声再生** — ffplay, mpv, aplay を自動検出
 
-## Install
+## インストール
 
 ```bash
 uv venv && uv pip install -e .
 ```
 
-## Setup
+## セットアップ
 
 ```bash
 cp config.example.toml config.toml
-# Edit config.toml with your backend and agent settings
+# config.toml をバックエンドとエージェントの設定に合わせて編集
 ```
 
-### Backend: vast.ai
+### バックエンド: vast.ai
 
-Requires a running vast.ai instance with ComfyUI + ACE-Step deployed.
-See [ACE-STEP-API.md](../ACE-STEP-API.md) for setup instructions.
+ComfyUI + ACE-Step がデプロイ済みの vast.ai インスタンスが必要。
+セットアップ手順は [ACE-STEP-API.md](../ACE-STEP-API.md) を参照。
 
 ```toml
 [backend]
@@ -38,9 +38,9 @@ ssh_host = "ssh8.vast.ai"
 ssh_port = 11522
 ```
 
-### Backend: Local
+### バックエンド: ローカル
 
-Requires ComfyUI running locally with the [ComfyUI_ACE-Step](https://github.com/billwuhao/ComfyUI_ACE-Step) custom node.
+ローカルで ComfyUI + [ComfyUI_ACE-Step](https://github.com/billwuhao/ComfyUI_ACE-Step) カスタムノードが動作している必要あり。
 
 ```toml
 [backend]
@@ -50,9 +50,9 @@ type = "local"
 comfyui_url = "http://localhost:8188"
 ```
 
-### AI Agent
+### AIエージェント
 
-Set `ANTHROPIC_API_KEY` environment variable, or put the key in config.toml.
+環境変数 `ANTHROPIC_API_KEY` を設定するか、config.toml に記載。
 
 ```toml
 [agent]
@@ -62,17 +62,17 @@ type = "anthropic"
 model = "claude-sonnet-4-20250514"
 ```
 
-## Usage
+## 使い方
 
 ```bash
-# Interactive session
+# 対話型セッション
 ace-music generate
 
-# With custom config
+# 設定ファイル指定
 ace-music generate -c /path/to/config.toml
 ```
 
-### Session flow
+### セッションの流れ
 
 ```
 $ ace-music generate
@@ -95,9 +95,9 @@ Prompt: pop, bright, female voice, 120 BPM, synth, upbeat
 
 Lyrics:
   [Verse]
-  Morning light through the window...
+  朝の光が差し込んで...
   [Chorus]
-  Walking on sunshine...
+  歩き出そう 今日も...
   Edit lyrics? [y/N]
 
 Generation Parameters
@@ -119,31 +119,31 @@ Next action:
   >
 ```
 
-## Architecture
+## アーキテクチャ
 
 ```
 ace_music/
-├── cli.py          ← Interactive UI (typer + rich + prompt_toolkit)
-├── app.py          ← DI factory (wires backends & agents from config)
-├── models.py       ← Pydantic data models
-├── config.py       ← TOML configuration
-├── player.py       ← Audio playback
+├── cli.py          ← 対話型UI (typer + rich + prompt_toolkit)
+├── app.py          ← DIファクトリ (設定からbackend/agentを生成)
+├── models.py       ← pydanticデータモデル
+├── config.py       ← TOML設定管理
+├── player.py       ← 音声再生
 ├── backends/
-│   ├── protocol.py    ← Backend Protocol (interface)
-│   ├── comfyui_api.py ← ComfyUI HTTP API (shared logic)
-│   ├── vastai.py      ← SSH tunnel + ComfyUI
-│   ├── local.py       ← Direct localhost ComfyUI
-│   └── runpod.py      ← Stub
+│   ├── protocol.py    ← Backend Protocol (インターフェース)
+│   ├── comfyui_api.py ← ComfyUI HTTP API (共通ロジック)
+│   ├── vastai.py      ← SSHトンネル + ComfyUI
+│   ├── local.py       ← ローカルComfyUI直接接続
+│   └── runpod.py      ← スタブ
 └── agents/
-    ├── protocol.py    ← Agent Protocol (interface)
+    ├── protocol.py    ← Agent Protocol (インターフェース)
     ├── anthropic.py   ← Claude API
-    ├── openai_agent.py← Stub
-    └── local.py       ← Stub
+    ├── openai_agent.py← スタブ
+    └── local.py       ← スタブ
 ```
 
-### Adding a new backend
+### バックエンドの追加
 
-Implement the `MusicBackend` protocol:
+`MusicBackend` プロトコルを実装する:
 
 ```python
 class MusicBackend(Protocol):
@@ -154,9 +154,9 @@ class MusicBackend(Protocol):
     async def disconnect(self) -> None: ...
 ```
 
-### Adding a new AI agent
+### AIエージェントの追加
 
-Implement the `MusicAgent` protocol:
+`MusicAgent` プロトコルを実装する:
 
 ```python
 class MusicAgent(Protocol):
@@ -165,6 +165,6 @@ class MusicAgent(Protocol):
     async def suggest_params(self, prompt: str) -> GenerationParams: ...
 ```
 
-## License
+## ライセンス
 
 MIT
