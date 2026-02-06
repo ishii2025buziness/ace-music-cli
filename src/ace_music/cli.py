@@ -340,6 +340,85 @@ def version() -> None:
     console.print("ace-music-cli 0.1.0")
 
 
+@app.command()
+def doctor(
+    fix: bool = typer.Option(False, "--fix", help="Attempt to install missing dependencies"),
+) -> None:
+    """Check dependencies and show setup instructions.
+
+    Verifies: vastai CLI, API keys, audio player.
+    Use --fix to auto-install missing Python packages.
+    """
+    import shutil
+    import os
+
+    all_ok = True
+
+    console.print("[bold]Checking dependencies...[/bold]\n")
+
+    # 1. vastai CLI
+    vastai_path = shutil.which("vastai")
+    if vastai_path:
+        console.print("  [green]✓[/green] vastai CLI found")
+    else:
+        console.print("  [red]✗[/red] vastai CLI not found")
+        console.print("    [dim]Fix: pip install vastai[/dim]")
+        all_ok = False
+        if fix:
+            console.print("    [cyan]Installing vastai...[/cyan]")
+            subprocess.run(["pip", "install", "vastai"], capture_output=True)
+            if shutil.which("vastai"):
+                console.print("    [green]✓ Installed[/green]")
+            else:
+                console.print("    [red]✗ Install failed[/red]")
+
+    # 2. vastai API key
+    vastai_key_path = Path.home() / ".config" / "vastai" / "vast_api_key"
+    if vastai_key_path.exists():
+        console.print("  [green]✓[/green] vastai API key configured")
+    else:
+        console.print("  [red]✗[/red] vastai API key not found")
+        console.print("    [dim]Fix: vastai set api-key <YOUR_API_KEY>[/dim]")
+        console.print("    [dim]Get key: https://console.vast.ai/account[/dim]")
+        all_ok = False
+
+    # 3. ANTHROPIC_API_KEY
+    if os.environ.get("ANTHROPIC_API_KEY"):
+        console.print("  [green]✓[/green] ANTHROPIC_API_KEY set")
+    else:
+        # Check config file
+        config = load_config()
+        if config.agent.anthropic.api_key:
+            console.print("  [green]✓[/green] ANTHROPIC_API_KEY in config")
+        else:
+            console.print("  [yellow]![/yellow] ANTHROPIC_API_KEY not set")
+            console.print("    [dim]Fix: export ANTHROPIC_API_KEY=<YOUR_KEY>[/dim]")
+            console.print("    [dim]Or: ace-music config set (to save in config)[/dim]")
+            all_ok = False
+
+    # 4. Audio player (optional)
+    player_found = None
+    for player in ["ffplay", "mpv", "aplay"]:
+        if shutil.which(player):
+            player_found = player
+            break
+
+    if player_found:
+        console.print(f"  [green]✓[/green] Audio player found ({player_found})")
+    else:
+        console.print("  [yellow]![/yellow] No audio player found (optional)")
+        console.print("    [dim]Fix: apt install ffmpeg (for ffplay)[/dim]")
+
+    # Summary
+    console.print()
+    if all_ok:
+        console.print("[bold green]All dependencies OK![/bold green]")
+        console.print("[dim]Run 'ace-music backend search' to get started.[/dim]")
+    else:
+        console.print("[bold yellow]Some dependencies missing.[/bold yellow]")
+        console.print("[dim]Follow the fix instructions above.[/dim]")
+
+
 # ============================================================================
 # Config subcommands
 # ============================================================================
