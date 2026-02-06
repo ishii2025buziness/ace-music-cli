@@ -14,6 +14,11 @@ if sys.version_info >= (3, 11):
 else:
     import tomli as tomllib
 
+try:
+    import tomli_w
+except ImportError:
+    tomli_w = None  # type: ignore
+
 
 class VastAIConfig(BaseModel):
     instance_id: str = ""
@@ -106,3 +111,38 @@ def _parse_config(path: Path) -> AppConfig:
         cfg.agent.anthropic.api_key = os.environ.get("ANTHROPIC_API_KEY", "")
 
     return cfg
+
+
+def get_config_path() -> Path:
+    """Return the user config path (~/.config/ace-music/config.toml)."""
+    return Path.home() / ".config" / "ace-music" / "config.toml"
+
+
+def save_config(config: AppConfig, path: Path | None = None) -> Path:
+    """Save configuration to TOML file.
+
+    Args:
+        config: The configuration to save
+        path: Target path. Defaults to ~/.config/ace-music/config.toml
+
+    Returns:
+        The path where config was saved
+
+    Raises:
+        ImportError: If tomli_w is not installed
+    """
+    if tomli_w is None:
+        raise ImportError("tomli_w is required to save config. Install with: pip install tomli-w")
+
+    if path is None:
+        path = get_config_path()
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Convert to dict, excluding defaults where possible for cleaner output
+    data = config.model_dump(mode="json")
+
+    with open(path, "wb") as f:
+        tomli_w.dump(data, f)
+
+    return path
